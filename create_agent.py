@@ -39,23 +39,6 @@ For analysis, use the run_code_with_queries tool to execute code that queries th
 """
 
 
-def run_code_with_queries(code: str): 
-    """
-    Execute provided code and return results.
-
-    Parameters:
-        code (str): Code to execute (must be python)
-    """
-    from e2b_code_interpreter import Sandbox 
-    import os 
-    e2b_api_key = os.getenv('E2B_API_KEY')
-    
-    sbx = Sandbox(api_key=e2b_api_key) # By default the sandbox is alive for 5 minutes
-    sbx.commands.run("pip install duckdb")
-    execution = sbx.run_code(code) # Execute Python inside the sandbox
-    print(code)
-    return execution.logs
-
 def show_table_schemas():
     """
     Show the schemas of all tables in the current database.
@@ -221,8 +204,7 @@ def generate_final_report(report: str):
     return 
 
 import inspect
-#client = Letta(token=os.getenv('LETTA_API_KEY'))
-client = Letta(base_url="http://localhost:8283")
+client = Letta(token=os.getenv('LETTA_API_KEY'))
 
 execute_sql_tool = client.tools.upsert_from_function(
     func=execute_sql,
@@ -292,10 +274,12 @@ agent = client.agents.create(
     tools=["run_code"],
     model="google_ai/gemini-2.5-pro",
     embedding="openai/text-embedding-3-small",
-    tool_exec_environment_variables={"MOTHERDUCK_API_KEY": os.getenv("MOTHERDUCK_API_KEY"), "E2B_API_KEY": os.getenv("E2B_API_KEY"), "DATABASE_NAME": os.getenv("DATABASE_NAME")},
+    tool_exec_environment_variables={
+        "MOTHERDUCK_API_KEY": os.getenv("MOTHERDUCK_API_KEY"), 
+        "DATABASE_NAME": os.getenv("DATABASE_NAME")
+    },
     tool_rules=[
         #RequiredBeforeExitToolRule(tool_name="generate_final_report", type="required_before_exit"), 
-        ContinueToolRule(tool_name="run_code", type="continue_loop"), 
         ContinueToolRule(tool_name="execute_sql", type="continue_loop"), 
         ContinueToolRule(tool_name="execute_sql_multiple", type="continue_loop"), 
         ContinueToolRule(tool_name="show_table_schemas", type="continue_loop"), 
